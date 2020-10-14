@@ -27,7 +27,7 @@ test: app
 	mix test
 
 docs:
-	MIX_ENV=docs mix docs
+	mix docs
 
 publish:
 	mix hex.publish

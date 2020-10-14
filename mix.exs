@@ -1,19 +1,21 @@
 defmodule Translixir.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/naomijub/translixir/"
+
   def project do
     [
-      app: :translixir_application,
+      app: :translixir,
       version: "0.1.0",
       description: "Crux Datalog DB Client",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
-      package: package,
-      deps: deps()
+      package: package(),
+      deps: deps(),
+      docs: docs()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger, :httpoison],
@@ -21,20 +23,35 @@ defmodule Translixir.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 1.6"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:httpoison, "~> 1.6"},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
     ]
   end
 
   defp package do
-    [files: ["lib", "mix.exs", "README*", "readme*", "LICENSE*", "license*"],
-     contributors: ["Julia Naomi"],
-     licenses: ["LGPL-3.0"],
-     links: %{"GitHub" => "https://github.com/naomijub/translixir/",
-              "Crux" => "https://www.opencrux.com/reference/installation.html#restapi"}]
+    [
+      files: ~w(lib mix.exs .formatter.exs README* LICENSE* CHANGELOG*),
+      contributors: ["Julia Naomi"],
+      licenses: ["LGPL-3.0"],
+      links: %{
+        "Changelog" => "#{@source_url}/blob/master/CHANGELOG.md",
+        "GitHub" => @source_url,
+        "Crux" => "https://www.opencrux.com/reference/installation.html#restapi"
+      }
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      source_url: @source_url,
+      extras: [
+        "CHANGELOG.md",
+        "README.md",
+        "LICENSE",
+      ]
+    ]
   end
 end
