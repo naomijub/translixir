@@ -1,21 +1,27 @@
 # Translixir
 
-**TODO: Add description**
+[![hex.pm](https://img.shields.io/hexpm/v/translixir.svg)](https://hex.pm/packages/translixir)
+[![hex.pm](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/translixir)
+[![hex.pm](https://img.shields.io/hexpm/dt/translixir.svg)](https://hex.pm/packages/translixir)
+[![hex.pm](https://img.shields.io/hexpm/l/translixir.svg)](https://hex.pm/packages/translixir)
+[![github.com](https://img.shields.io/github/last-commit/naomijub/translixir.svg)](https://github.com/naomijub/translixir/commits/master)
+
+Elixir client for [Crux DB](https://www.opencrux.com), the general purpose
+database with bitemporal SQL and Datalog.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `translixir_application` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `translixir` to your list of
+dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:translixir_application, "~> 0.1.0"}
+    {:translixir, "~> 0.1.0"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/translixir_application](https://hexdocs.pm/translixir_application).
+## License
 
+[LGPL](LICENSE). Copyright (c) 2020 Julia Naomi.
