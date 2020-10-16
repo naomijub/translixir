@@ -4,7 +4,6 @@ defmodule Translixir do
   """
   alias Translixir.Client
 
-
   def action(:put, value) do
     "[[:crux.tx/put #{value}]]"
   end
@@ -37,7 +36,7 @@ defmodule Translixir do
   def tx_log({:ok, client}, actions) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.post url, "#{actions}", headers
+    response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> {:ok, content.body}
@@ -58,7 +57,8 @@ defmodule Translixir do
   def tx_log!(client, actions) when is_pid(client) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.post url, "#{actions}", headers
+    response = HTTPoison.post(url, "#{actions}", headers)
+
     case response do
       {:ok, content} when content.status_code < 300 -> content.body
       _ -> raise "POST at tx-log with body #{actions} did not return 200"
@@ -87,7 +87,7 @@ defmodule Translixir do
   def tx_logs({:ok, client}) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.get url, headers
+    response = HTTPoison.get(url, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> {:ok, content.body}
@@ -108,7 +108,7 @@ defmodule Translixir do
   def tx_logs!(client) when is_pid(client) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.get url, headers
+    response = HTTPoison.get(url, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> content.body
@@ -135,7 +135,7 @@ defmodule Translixir do
   def entity({:ok, client}, entity_id) do
     url = Client.endpoint(client, :entity)
     headers = Client.headers(client)
-    response = HTTPoison.post url, "{:eid #{entity_id}}", headers
+    response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> {:ok, content.body}
@@ -161,7 +161,7 @@ defmodule Translixir do
   def entity!(client, entity_id) when is_pid(client) do
     url = Client.endpoint(client, :entity)
     headers = Client.headers(client)
-    response = HTTPoison.post url, "{:eid #{entity_id}}", headers
+    response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> content.body
@@ -188,7 +188,7 @@ defmodule Translixir do
   def entity_tx({:ok, client}, entity_id) do
     url = Client.endpoint(client, :entity_tx)
     headers = Client.headers(client)
-    response = HTTPoison.post url, "{:eid #{entity_id}}", headers
+    response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> {:ok, content.body}
@@ -214,7 +214,7 @@ defmodule Translixir do
   def entity_tx!(client, entity_id) when is_pid(client) do
     url = Client.endpoint(client, :entity_tx)
     headers = Client.headers(client)
-    response = HTTPoison.post url, "{:eid #{entity_id}}", headers
+    response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> content.body

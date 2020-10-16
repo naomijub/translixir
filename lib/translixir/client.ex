@@ -10,7 +10,7 @@ defmodule Translixir.Client do
   `new` creates an Agent that contains structs `Client` with fields `:host, :port`
   """
   def new(host, port) do
-    HTTPoison.start
+    HTTPoison.start()
     client = %Translixir.Client{host: host, port: port}
     Agent.start_link(fn -> client end)
   end
@@ -19,7 +19,7 @@ defmodule Translixir.Client do
   `auth` includes field `:auth` at struct Client contained at <PID>, it is the authorization token
   """
   def auth(pid, auth) do
-    Agent.update(pid, fn(client) ->
+    Agent.update(pid, fn client ->
       map = Map.put(client, :auth, auth)
       map
     end)
@@ -29,7 +29,7 @@ defmodule Translixir.Client do
   `get` returns struct `Client` contained at <PID>
   """
   def get(pid) do
-    Agent.get(pid, fn(client) -> client end)
+    Agent.get(pid, fn client -> client end)
   end
 
   @doc """
@@ -41,8 +41,10 @@ defmodule Translixir.Client do
   """
   def headers(pid) do
     content_type = {"Content-Type", "application/edn"}
-    Agent.get(pid, fn(client) -> case Map.fetch(client, :auth) do
-        {:ok, auth} when not is_nil(auth)-> [content_type, {"Authorization", "Bearer #{auth}"}]
+
+    Agent.get(pid, fn client ->
+      case Map.fetch(client, :auth) do
+        {:ok, auth} when not is_nil(auth) -> [content_type, {"Authorization", "Bearer #{auth}"}]
         _ -> [content_type]
       end
     end)
@@ -54,7 +56,8 @@ defmodule Translixir.Client do
   `:entity -> "http://#base_url/entity"`
   """
   def endpoint(pid, endpoint) do
-    base_url = Agent.get(pid, fn(client) -> "#{client.host}:#{client.port}" end)
+    base_url = Agent.get(pid, fn client -> "#{client.host}:#{client.port}" end)
+
     case endpoint do
       :tx_log -> "http://#{base_url}/tx-log"
       :entity -> "http://#{base_url}/entity"

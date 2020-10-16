@@ -26,7 +26,7 @@ defmodule Translixir.MixProject do
   defp deps do
     [
       {:httpoison, "~> 1.6"},
-      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end
 
@@ -50,7 +50,7 @@ defmodule Translixir.MixProject do
       extras: [
         "CHANGELOG.md",
         "README.md",
-        "LICENSE",
+        "LICENSE"
       ]
     ]
   end
