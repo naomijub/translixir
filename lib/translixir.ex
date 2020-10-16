@@ -31,7 +31,7 @@ defmodule Translixir do
     `{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }`
 
     Example Response:
-    `{:crux.tx/tx-id 7, :crux.tx/tx-time #inst \"2020-07-16T21:50:39.309-00:00\"}`
+    `{:ok, "{:crux.tx/tx-id 7, :crux.tx/tx-time #inst \"2020-07-16T21:50:39.309-00:00\"}"}`
 
   """
   def tx_log({:ok, client}, actions) do
@@ -75,10 +75,13 @@ defmodule Translixir do
     _ -> {:error}
 
     Example Response:
-    ({:crux.tx/tx-id 0, :crux.tx/tx-time #inst \"2020-10-14T03:48:43.298-00:00\", :crux.tx.event/tx-events
-      [[:crux.tx/put #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\" #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\"]]}
-    {:crux.tx/tx-id 1, :crux.tx/tx-time #inst \"2020-10-16T01:10:08.451-00:00\", :crux.tx.event/tx-events
-      [[:crux.tx/put #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\" #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\"]]})
+    ```
+    {:ok,
+      ({:crux.tx/tx-id 0, :crux.tx/tx-time #inst \"2020-10-14T03:48:43.298-00:00\", :crux.tx.event/tx-events
+        [[:crux.tx/put #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\" #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\"]]}
+      {:crux.tx/tx-id 1, :crux.tx/tx-time #inst \"2020-10-16T01:10:08.451-00:00\", :crux.tx.event/tx-events
+        [[:crux.tx/put #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\" #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\"]]})}
+    ```
 
   """
   def tx_logs({:ok, client}) do
@@ -126,7 +129,7 @@ defmodule Translixir do
     `":jorge-3"`
 
     Example Response:
-    `{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }`
+    `{:ok, { :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }}`
 
   """
   def entity({:ok, client}, entity_id) do
@@ -163,6 +166,59 @@ defmodule Translixir do
     case response do
       {:ok, content} when content.status_code < 300 -> content.body
       _ -> raise "POST at entity with id #{entity_id} did not return 200"
+    end
+  end
+
+  @spec entity_tx({:ok, pid}, any) :: {:error} | {:ok, any}
+  @doc """
+    entity_tx({:ok, <PID>}, entity_crux_id)
+    POST an ID at CruxDB endpoint `/entity-tx`
+
+    Returns:
+    `status_2XX` -> {:ok, body}
+    _ -> {:error}
+
+    Example `entity_crux_id`
+    `":jorge-3"`
+
+    Example Response:
+    `{:ok, "{:crux.db/id #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\", :crux.db/content-hash #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\", :crux.db/valid-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-id 4}"}`
+
+  """
+  def entity_tx({:ok, client}, entity_id) do
+    url = Client.endpoint(client, :entity_tx)
+    headers = Client.headers(client)
+    response = HTTPoison.post url, "{:eid #{entity_id}}", headers
+
+    case response do
+      {:ok, content} when content.status_code < 300 -> {:ok, content.body}
+      _ -> {:error}
+    end
+  end
+
+  @doc """
+    entity_tx!(<PID>, entity_crux_id)
+    POST an ID at CruxDB endpoint `/entity-tx`
+
+    Returns:
+    `status_2XX` -> body
+    _ -> exception is raised
+
+    Example `entity_crux_id`
+    `":jorge-3"`
+
+    Example Response:
+    `"{:crux.db/id #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\", :crux.db/content-hash #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\", :crux.db/valid-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-id 4}"`
+
+  """
+  def entity_tx!(client, entity_id) when is_pid(client) do
+    url = Client.endpoint(client, :entity_tx)
+    headers = Client.headers(client)
+    response = HTTPoison.post url, "{:eid #{entity_id}}", headers
+
+    case response do
+      {:ok, content} when content.status_code < 300 -> content.body
+      _ -> raise "POST at entity-tx with id #{entity_id} did not return 200"
     end
   end
 end

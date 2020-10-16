@@ -58,6 +58,7 @@ defmodule Translixir.Client do
     case endpoint do
       :tx_log -> "http://#{base_url}/tx-log"
       :entity -> "http://#{base_url}/entity"
+      :entity_tx -> "http://#{base_url}/entity-tx"
     end
   end
 end
