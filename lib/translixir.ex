@@ -14,6 +14,15 @@ defmodule Translixir do
     tx_log({:ok, <PID>}, actions)
     POST a collection of `Action` at CruxDB endpoint `/tx-log`
 
+    Usage:
+    ```
+    put = action(:put, "{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }")
+
+    Client.new("localhost", "3000")
+    |> tx_log(put)
+    |> IO.inspect
+    ```
+
     Returns:
     `status_2XX` -> {:ok, body}
     _ -> {:error}
