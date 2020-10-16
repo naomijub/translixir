@@ -2,25 +2,46 @@ defmodule Translixir do
   @moduledoc """
   Documentation for `Translixir`.
   """
+  alias Translixir.Client
 
-  def client(host, port) do
-    "#{host}:#{port}"
-  end
 
   def action(:put, value) do
     "[[:crux.tx/put #{value}]]"
   end
 
-  def tx_log(client, actions) do
-    HTTPoison.start
-    HTTPoison.post "http://#{client}/tx-log", "#{actions}", [{"Content-Type", "application/edn"}]
+  def tx_log({:ok, client}, actions) do
+    url = Client.endpoint(client, :tx_log)
+    headers = Client.headers(client)
+    HTTPoison.post url, "#{actions}", headers
   end
 
-  def init() do
-    put = action(:put, "{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }")
+  def tx_log!(client, actions) when is_pid(client) do
+    url = Client.endpoint(client, :tx_log)
+    headers = Client.headers(client)
+    HTTPoison.post url, "#{actions}", headers
+  end
 
-    client("localhost", "3000")
-    |> tx_log(put)
-    |> IO.inspect
+  def tx_logs({:ok, client}) do
+    url = Client.endpoint(client, :tx_log)
+    headers = Client.headers(client)
+    HTTPoison.get url, headers
+  end
+
+  def tx_logs!(client) when is_pid(client) do
+    url = Client.endpoint(client, :tx_log)
+    headers = Client.headers(client)
+    HTTPoison.get url, headers
+  end
+
+  def entity({:ok, client}, entity) do
+    url = Client.endpoint(client, :entity)
+    headers = Client.headers(client)
+    HTTPoison.post url, "{:eid #{entity}}", headers
+  end
+
+  def entity!(client, entity) when is_pid(client) do
+    url = Client.endpoint(client, :entity)
+    headers = Client.headers(client)
+    HTTPoison.post url, "{:eid #{entity}}", headers
   end
 end
