@@ -17,6 +17,7 @@ database with bitemporal Datalog and SQL.
 
 * [**Crux Getting Started**](https://opencrux.com/reference/get-started.html)
 * [**Crux FAQs**](https://opencrux.com/about/faq.html)
+* [**Rust Client** as inspiration](https://github.com/naomijub/transistor)
 
 ## Bitemporal Crux
 

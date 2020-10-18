@@ -3,6 +3,7 @@ defmodule Translixir do
   Documentation for `Translixir`.
   """
   alias Translixir.Client
+  alias Translixir.Time
 
   def action(:put, value) do
     "[[:crux.tx/put #{value}]]"
@@ -116,10 +117,43 @@ defmodule Translixir do
     end
   end
 
-  @spec entity({:ok, pid}, any) :: {:error} | {:ok, any}
+  # @spec entity({:ok, pid}, any) :: {:error} | {:ok, any}
+  # @doc """
+  #   entity({:ok, <PID>}, entity_crux_id)
+  #   POST an ID at CruxDB endpoint `/entity`
+
+  #   Returns:
+  #   `status_2XX` -> {:ok, body}
+  #   _ -> {:error}
+
+  #   Example `entity_crux_id`
+  #   `":jorge-3"`
+
+  #   Example Response:
+  #   `{:ok, { :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }}`
+
+  # """
+  # def entity({:ok, client}, entity_id) do
+  #   url = Client.endpoint(client, :entity)
+  #   headers = Client.headers(client)
+  #   response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
+
+  #   case response do
+  #     {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+  #     _ -> {:error}
+  #   end
+  # end
+
+  @spec entity(
+          {:ok, atom | pid | {atom, any} | {:via, atom, any}},
+          any,
+          DateTime.t(),
+          DateTime.t()
+        ) :: {:error} | {:error, atom} | {:ok, any}
   @doc """
-    entity({:ok, <PID>}, entity_crux_id)
-    POST an ID at CruxDB endpoint `/entity`
+    `entity({:ok, <PID>}, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
+    POST an ID at CruxDB endpoint `/entity[?[transaction-time=<transaction_time>]&[valid-time=<valid_time>]]`
 
     Returns:
     `status_2XX` -> {:ok, body}
@@ -132,8 +166,8 @@ defmodule Translixir do
     `{:ok, { :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }}`
 
   """
-  def entity({:ok, client}, entity_id) do
-    url = Client.endpoint(client, :entity)
+  def entity({:ok, client}, entity_id, tx_time \\ "", valid_time \\ "") do
+    url = Time.build_timed_url(Client.endpoint(client, :entity), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
@@ -144,8 +178,10 @@ defmodule Translixir do
   end
 
   @doc """
-    entity!(<PID>, entity_crux_id)
-    POST an ID at CruxDB endpoint `/entity`
+    `entity!(<PID>, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
+    POST an ID at CruxDB endpoint `/entity[?[transaction-time=<transaction_time>]&[valid-time=<valid_time>]]`
+
 
     Returns:
     `status_2XX` -> body
@@ -158,8 +194,9 @@ defmodule Translixir do
     `{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }`
 
   """
-  def entity!(client, entity_id) when is_pid(client) do
-    url = Client.endpoint(client, :entity)
+  @spec entity!(pid | {atom, any} | {:via, atom, any}, any, DateTime.t(), DateTime.t()) :: any()
+  def entity!(client, entity_id, tx_time \\ "", valid_time \\ "") when is_pid(client) do
+    url = Time.build_timed_url(Client.endpoint(client, :entity), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
@@ -169,9 +206,15 @@ defmodule Translixir do
     end
   end
 
-  @spec entity_tx({:ok, pid}, any) :: {:error} | {:ok, any}
+  @spec entity_tx(
+          {:ok, atom | pid | {atom, any} | {:via, atom, any}},
+          any,
+          DateTime.t(),
+          DateTime.t()
+        ) :: {:error} | {:error, atom} | {:ok, any}
   @doc """
-    entity_tx({:ok, <PID>}, entity_crux_id)
+    `entity_tx({:ok, <PID>}, entity_crux_id transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
     POST an ID at CruxDB endpoint `/entity-tx`
 
     Returns:
@@ -185,8 +228,8 @@ defmodule Translixir do
     `{:ok, "{:crux.db/id #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\", :crux.db/content-hash #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\", :crux.db/valid-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-id 4}"}`
 
   """
-  def entity_tx({:ok, client}, entity_id) do
-    url = Client.endpoint(client, :entity_tx)
+  def entity_tx({:ok, client}, entity_id, tx_time \\ "", valid_time \\ "") do
+    url = Time.build_timed_url(Client.endpoint(client, :entity_tx), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
@@ -198,7 +241,8 @@ defmodule Translixir do
 
   @spec entity_tx!(pid, any) :: any
   @doc """
-    entity_tx!(<PID>, entity_crux_id)
+    `entity_tx!(<PID>, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
     POST an ID at CruxDB endpoint `/entity-tx`
 
     Returns:
@@ -212,8 +256,8 @@ defmodule Translixir do
     `"{:crux.db/id #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\", :crux.db/content-hash #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\", :crux.db/valid-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-id 4}"`
 
   """
-  def entity_tx!(client, entity_id) when is_pid(client) do
-    url = Client.endpoint(client, :entity_tx)
+  def entity_tx!(client, entity_id, tx_time \\ "", valid_time \\ "") when is_pid(client) do
+    url = Time.build_timed_url(Client.endpoint(client, :entity_tx), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
@@ -223,8 +267,6 @@ defmodule Translixir do
     end
   end
 
-  # entity with time
-  # entity-tx with time
   # entity-history
   # entity-history with time
   # query
@@ -236,7 +278,6 @@ defmodule Translixir do
     client |> tx_log(put)
 
     client
-    |> entity_tx(":jorge-3")
-    |> IO.inspect
+    |> entity(":jorge-3", DateTime.now!("Etc/UTC"))
   end
 end
