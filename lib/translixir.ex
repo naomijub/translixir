@@ -39,7 +39,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
@@ -60,7 +60,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at tx-log with body #{actions} did not return 200"
     end
   end
@@ -90,7 +90,7 @@ defmodule Translixir do
     response = HTTPoison.get(url, headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
@@ -111,7 +111,7 @@ defmodule Translixir do
     response = HTTPoison.get(url, headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "GET at tx-log did not return 200"
     end
   end
@@ -138,7 +138,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
@@ -164,7 +164,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at entity with id #{entity_id} did not return 200"
     end
   end
@@ -191,11 +191,12 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
 
+  @spec entity_tx!(pid, any) :: any
   @doc """
     entity_tx!(<PID>, entity_crux_id)
     POST an ID at CruxDB endpoint `/entity-tx`
@@ -217,8 +218,25 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at entity-tx with id #{entity_id} did not return 200"
     end
+  end
+
+  # entity with time
+  # entity-tx with time
+  # entity-history
+  # entity-history with time
+  # query
+
+  def init() do
+    put = action(:put, "{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }")
+    client =  Client.new("localhost", "3000")
+
+    client |> tx_log(put)
+
+    client
+    |> entity_tx(":jorge-3")
+    |> IO.inspect
   end
 end

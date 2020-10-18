@@ -26,6 +26,7 @@ defmodule Translixir.MixProject do
   defp deps do
     [
       {:httpoison, "~> 1.6"},
+      {:timex, "~> 3.5"},
       {:credo, "~> 1.4.1", only: [:dev, :test, :ci], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
       {:eden, git: "git://github.com/jfacorro/Eden.git"},
