@@ -39,7 +39,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, content.body}
+      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
       _ -> {:error}
     end
   end
@@ -60,7 +60,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> content.body
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> raise "POST at tx-log with body #{actions} did not return 200"
     end
   end
@@ -90,7 +90,7 @@ defmodule Translixir do
     response = HTTPoison.get(url, headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, content.body}
+      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
       _ -> {:error}
     end
   end
@@ -111,7 +111,7 @@ defmodule Translixir do
     response = HTTPoison.get(url, headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> content.body
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> raise "GET at tx-log did not return 200"
     end
   end
@@ -138,7 +138,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, content.body}
+      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
       _ -> {:error}
     end
   end
@@ -164,7 +164,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> content.body
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> raise "POST at entity with id #{entity_id} did not return 200"
     end
   end
@@ -191,7 +191,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, content.body}
+      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
       _ -> {:error}
     end
   end
@@ -217,7 +217,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> content.body
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> raise "POST at entity-tx with id #{entity_id} did not return 200"
     end
   end

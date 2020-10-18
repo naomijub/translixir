@@ -29,6 +29,18 @@ test: app
 docs:
 	mix docs
 
+lint: format
+	mix credo --strict
+
+format:
+	mix format
+
+outdated:
+	mix hex.outdated
+
+spec:
+	 mix dialyzer --format dialyxir
+
 publish:
 	mix hex.publish
 	mix hex.publish docs
