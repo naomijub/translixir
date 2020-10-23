@@ -1,7 +1,5 @@
 # Translixir
 
-
-
 [![hex.pm](https://img.shields.io/hexpm/v/translixir.svg)](https://hex.pm/packages/translixir)
 [![hex.pm](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/translixir)
 [![hex.pm](https://img.shields.io/hexpm/dt/translixir.svg)](https://hex.pm/packages/translixir)

@@ -37,5 +37,6 @@ defmodule Http.TranslixirClientTest do
     assert Client.endpoint(client, :entity) == "http://localhost:3000/entity"
     assert Client.endpoint(client, :entity_tx) == "http://localhost:3000/entity-tx"
     assert Client.endpoint(client, :entity_history) == "http://localhost:3000/entity-history"
+    assert Client.endpoint(client, :query) == "http://localhost:3000/query"
   end
 end

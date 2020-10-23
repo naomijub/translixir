@@ -78,6 +78,7 @@ defmodule Translixir.Http.Client do
   assert Client.endpoint(client, :entity) == "http://localhost:3000/entity"
   assert Client.endpoint(client, :entity_tx) == "http://localhost:3000/entity-tx"
   assert Client.endpoint(client, :entity_history) == "http://localhost:3000/entity-history"
+  assert Client.endpoint(client, :query) == "http://localhost:3000/query"
   ```
   """
   def endpoint(pid, endpoint) do
@@ -88,6 +89,7 @@ defmodule Translixir.Http.Client do
       :entity -> "http://#{base_url}/entity"
       :entity_tx -> "http://#{base_url}/entity-tx"
       :entity_history -> "http://#{base_url}/entity-history"
+      :query -> "http://#{base_url}/query"
     end
   end
 end

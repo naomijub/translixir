@@ -322,6 +322,59 @@ defmodule Translixir do
     EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
   end
 
-  # entity-history with time
-  # query
+  @spec query({:ok, pid}, any) :: {:error} | {:ok, any}
+  @doc """
+    query({:ok, <PID>}, query)
+    POST a `Query` at CruxDB endpoint `/query`
+
+    ```
+    client =  Client.new("localhost", "3000")
+    query = %{}
+      |> Query.find(["?n"])
+      |> Query.where([
+        "?n :first-name ?p",
+      ])
+      |> Query.args(["?p \"Michael\""])
+      |> Query.with_full_results
+      |> Query.build
+
+
+
+    client
+    |> query(query)
+    |> IO.inspect
+    # {:ok,
+    #   [
+    #     #Array<[
+    #       %{"crux.db/id": :"jorge-3", "first-name": "Michael", "last-name": "Jorge"}
+    #     ], fixed=false, default=nil>
+    #   ]}
+    ```
+  """
+  def query({:ok, client}, query) do
+    url = Client.endpoint(client, :query)
+    headers = Client.headers(client)
+    response = HTTPoison.post(url, "#{query}", headers)
+
+    case response do
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      _ -> {:error}
+    end
+  end
+
+  @spec query!(pid, any) :: any
+  @doc """
+    query!(<PID>, query)
+    POST a `Query` at CruxDB endpoint `/query`
+  """
+  def query!(client, query) when is_pid(client) do
+    url = Client.endpoint(client, :query)
+    headers = Client.headers(client)
+    response = HTTPoison.post(url, "#{query}", headers)
+
+    case response do
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
+      _ -> raise "POST at query with body #{query} did not return 200"
+    end
+  end
 end
