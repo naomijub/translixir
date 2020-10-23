@@ -2,11 +2,9 @@ defmodule Translixir do
   @moduledoc """
   Documentation for `Translixir`.
   """
-  alias Translixir.Client
-
-  def action(:put, value) do
-    "[[:crux.tx/put #{value}]]"
-  end
+  alias Translixir.Helpers.Time
+  alias Translixir.Http.Client
+  alias Translixir.Http.EntityHistory
 
   @spec tx_log({:ok, pid}, any) :: {:error} | {:ok, any}
   @doc """
@@ -31,7 +29,6 @@ defmodule Translixir do
 
     Example Response:
     `{:ok, "{:crux.tx/tx-id 7, :crux.tx/tx-time #inst \"2020-07-16T21:50:39.309-00:00\"}"}`
-
   """
   def tx_log({:ok, client}, actions) do
     url = Client.endpoint(client, :tx_log)
@@ -39,7 +36,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
@@ -60,7 +57,7 @@ defmodule Translixir do
     response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at tx-log with body #{actions} did not return 200"
     end
   end
@@ -90,7 +87,7 @@ defmodule Translixir do
     response = HTTPoison.get(url, headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
@@ -111,15 +108,42 @@ defmodule Translixir do
     response = HTTPoison.get(url, headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "GET at tx-log did not return 200"
     end
   end
 
-  @spec entity({:ok, pid}, any) :: {:error} | {:ok, any}
+  # @spec entity({:ok, pid}, any) :: {:error} | {:ok, any}
+  # @doc """
+  #   entity({:ok, <PID>}, entity_crux_id)
+  #   POST an ID at CruxDB endpoint `/entity`
+
+  #   Returns:
+  #   `status_2XX` -> {:ok, body}
+  #   _ -> {:error}
+
+  #   Example `entity_crux_id`
+  #   `":jorge-3"`
+
+  #   Example Response:
+  #   `{:ok, { :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }}`
+
+  # """
+  # def entity({:ok, client}, entity_id) do
+  #   url = Client.endpoint(client, :entity)
+  #   headers = Client.headers(client)
+  #   response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
+
+  #   case response do
+  #     {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+  #     _ -> {:error}
+  #   end
+  # end
+
   @doc """
-    entity({:ok, <PID>}, entity_crux_id)
-    POST an ID at CruxDB endpoint `/entity`
+    `entity({:ok, <PID>}, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
+    POST an ID at CruxDB endpoint `/entity[?[transaction-time=<transaction_time>]&[valid-time=<valid_time>]]`
 
     Returns:
     `status_2XX` -> {:ok, body}
@@ -132,20 +156,22 @@ defmodule Translixir do
     `{:ok, { :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }}`
 
   """
-  def entity({:ok, client}, entity_id) do
-    url = Client.endpoint(client, :entity)
+  def entity({:ok, client}, entity_id, tx_time \\ "", valid_time \\ "") do
+    url = Time.build_timed_url(Client.endpoint(client, :entity), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
 
   @doc """
-    entity!(<PID>, entity_crux_id)
-    POST an ID at CruxDB endpoint `/entity`
+    `entity!(<PID>, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
+    POST an ID at CruxDB endpoint `/entity[?[transaction-time=<transaction_time>]&[valid-time=<valid_time>]]`
+
 
     Returns:
     `status_2XX` -> body
@@ -158,20 +184,20 @@ defmodule Translixir do
     `{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }`
 
   """
-  def entity!(client, entity_id) when is_pid(client) do
-    url = Client.endpoint(client, :entity)
+  def entity!(client, entity_id, tx_time \\ "", valid_time \\ "") when is_pid(client) do
+    url = Time.build_timed_url(Client.endpoint(client, :entity), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at entity with id #{entity_id} did not return 200"
     end
   end
 
-  @spec entity_tx({:ok, pid}, any) :: {:error} | {:ok, any}
   @doc """
-    entity_tx({:ok, <PID>}, entity_crux_id)
+    `entity_tx({:ok, <PID>}, entity_crux_id transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
     POST an ID at CruxDB endpoint `/entity-tx`
 
     Returns:
@@ -185,19 +211,21 @@ defmodule Translixir do
     `{:ok, "{:crux.db/id #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\", :crux.db/content-hash #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\", :crux.db/valid-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-id 4}"}`
 
   """
-  def entity_tx({:ok, client}, entity_id) do
-    url = Client.endpoint(client, :entity_tx)
+  def entity_tx({:ok, client}, entity_id, tx_time \\ "", valid_time \\ "") do
+    url = Time.build_timed_url(Client.endpoint(client, :entity_tx), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> {:ok, Eden.decode(content.body)}
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
       _ -> {:error}
     end
   end
 
+  @spec entity_tx!(pid, any) :: any
   @doc """
-    entity_tx!(<PID>, entity_crux_id)
+    `entity_tx!(<PID>, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
+    * `transaction_time` and `valid_time` are in `DateTime` format
     POST an ID at CruxDB endpoint `/entity-tx`
 
     Returns:
@@ -211,14 +239,142 @@ defmodule Translixir do
     `"{:crux.db/id #crux/id \"be21bd5ae7f3334b9b8abb185dfbeae1623088b1\", :crux.db/content-hash #crux/id \"9d2c7102d6408d465f85b0b35dfb209b34daadd1\", :crux.db/valid-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-time #inst \"2020-10-16T01:51:50.568-00:00\", :crux.tx/tx-id 4}"`
 
   """
-  def entity_tx!(client, entity_id) when is_pid(client) do
-    url = Client.endpoint(client, :entity_tx)
+  def entity_tx!(client, entity_id, tx_time \\ "", valid_time \\ "") when is_pid(client) do
+    url = Time.build_timed_url(Client.endpoint(client, :entity_tx), tx_time, valid_time)
     headers = Client.headers(client)
     response = HTTPoison.post(url, "{:eid #{entity_id}}", headers)
 
     case response do
-      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at entity-tx with id #{entity_id} did not return 200"
+    end
+  end
+
+  @spec entity_history({:ok, pid}, any, :asc | :desc, boolean) :: any
+  @doc """
+    `entity_history({:ok, <PID>}, entity_hash, order, with_docs \\ false)`
+    * `order` can be `:asc` or `:desc`
+
+    GET an CruxdD hash at CruxDB endpoint `/entity-history/<hash>?sort-order=<order>&with-docs=<with_docs>`
+
+    Returns:
+    `status_2XX` -> {:ok, body}
+    _ -> {:error}
+
+    Example `entity_hash`
+    `"9d2c7102d6408d465f85b0b35dfb209b34daadd1"`
+
+    Example Response (`with_docs = false`):
+    ```{:ok,
+        [%{
+        "crux.db/content-hash": %Eden.Tag{
+          name: "crux/id",
+          value: "9d2c7102d6408d465f85b0b35dfb209b34daadd1"
+        },
+        "crux.db/valid-time": ~U[2020-10-22 18:18:20.524Z],
+        "crux.tx/tx-id": 160,
+        "crux.tx/tx-time": ~U[2020-10-22 18:18:20.524Z]
+      },
+      ...]
+    }```
+  """
+  def entity_history({:ok, client}, entity_hash, order, with_docs \\ false)
+      when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
+    url = Client.endpoint(client, :entity_history)
+    headers = Client.headers(client)
+
+    EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
+  end
+
+  @spec entity_history!(pid, any, :asc | :desc, boolean) :: any
+  @doc """
+    `entity_history!(<PID>, entity_hash, order, with_docs \\ false)`
+    * `order` can be `:asc` or `:desc`
+
+    GET an CruxdD hash at CruxDB endpoint `/entity-history/<hash>?sort-order=<order>&with-docs=<with_docs>`
+
+    Returns:
+    `status_2XX` -> {:ok, body}
+    _ -> {:error}
+
+    Example `entity_hash`
+    `"9d2c7102d6408d465f85b0b35dfb209b34daadd1"`
+
+    Example Response (`with_docs = false`):
+    ```[
+      %{
+      "crux.db/content-hash": %Eden.Tag{
+        name: "crux/id",
+        value: "9d2c7102d6408d465f85b0b35dfb209b34daadd1"
+      },
+      "crux.db/valid-time": ~U[2020-10-22 18:18:20.524Z],
+      "crux.tx/tx-id": 160,
+      "crux.tx/tx-time": ~U[2020-10-22 18:18:20.524Z]
+    },
+    ...
+  ]```
+  """
+  def entity_history!(client, entity_hash, order, with_docs \\ false)
+      when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
+    url = Client.endpoint(client, :entity_history)
+    headers = Client.headers(client)
+
+    EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
+  end
+
+  @spec query({:ok, pid}, any) :: {:error} | {:ok, any}
+  @doc """
+    query({:ok, <PID>}, query)
+    POST a `Query` at CruxDB endpoint `/query`
+
+    ```
+    client =  Client.new("localhost", "3000")
+    query = %{}
+      |> Query.find(["?n"])
+      |> Query.where([
+        "?n :first-name ?p",
+      ])
+      |> Query.args(["?p \"Michael\""])
+      |> Query.with_full_results
+      |> Query.build
+
+
+
+    client
+    |> query(query)
+    |> IO.inspect
+    # {:ok,
+    #   [
+    #     #Array<[
+    #       %{"crux.db/id": :"jorge-3", "first-name": "Michael", "last-name": "Jorge"}
+    #     ], fixed=false, default=nil>
+    #   ]}
+    ```
+  """
+  def query({:ok, client}, query) do
+    url = Client.endpoint(client, :query)
+    headers = Client.headers(client)
+    response = HTTPoison.post(url, "#{query}", headers)
+
+    case response do
+      {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
+      _ -> {:error}
+    end
+  end
+
+  @spec query!(pid, any) :: any
+  @doc """
+    query!(<PID>, query)
+    POST a `Query` at CruxDB endpoint `/query`
+  """
+  def query!(client, query) when is_pid(client) do
+    url = Client.endpoint(client, :query)
+    headers = Client.headers(client)
+    response = HTTPoison.post(url, "#{query}", headers)
+
+    case response do
+      {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
+      _ -> raise "POST at query with body #{query} did not return 200"
     end
   end
 end

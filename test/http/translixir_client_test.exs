@@ -1,7 +1,7 @@
-defmodule TranslixirClientTest do
+defmodule Http.TranslixirClientTest do
   use ExUnit.Case
   doctest Translixir
-  alias Translixir.Client
+  alias Translixir.Http.Client
 
   test "new client has host and port" do
     {:ok, client} = Client.new("localhost", "3000")
@@ -35,5 +35,8 @@ defmodule TranslixirClientTest do
     {:ok, client} = Client.new("localhost", "3000")
     assert Client.endpoint(client, :tx_log) == "http://localhost:3000/tx-log"
     assert Client.endpoint(client, :entity) == "http://localhost:3000/entity"
+    assert Client.endpoint(client, :entity_tx) == "http://localhost:3000/entity-tx"
+    assert Client.endpoint(client, :entity_history) == "http://localhost:3000/entity-history"
+    assert Client.endpoint(client, :query) == "http://localhost:3000/query"
   end
 end

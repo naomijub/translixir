@@ -1,7 +1,5 @@
 # Translixir
 
-
-
 [![hex.pm](https://img.shields.io/hexpm/v/translixir.svg)](https://hex.pm/packages/translixir)
 [![hex.pm](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/translixir)
 [![hex.pm](https://img.shields.io/hexpm/dt/translixir.svg)](https://hex.pm/packages/translixir)
@@ -10,13 +8,13 @@
 
 Elixir client for [Crux DB](https://www.opencrux.com), the general purpose
 database with bitemporal Datalog and SQL.
-- [ ] [DOING] Via `Docker` with a [`crux-standalone`](https://opencrux.com/reference/building.html#_docker) version [docker-hub](https://hub.docker.com/r/juxt/crux-standalone). Current Docker image `juxt/crux-standalone:20.09-1.11.0`.
-- [ ] [DOING] Via [`HTTP`](https://opencrux.com/reference/http.html#start-http-server) using the [`HTTP API`](https://opencrux.com/reference/http.html#http-api).
-- [ ] Json
-- [ ] SQL
+- [x] Via `Docker` with a [`crux-standalone`](https://opencrux.com/reference/building.html#_docker) version [docker-hub](https://hub.docker.com/r/juxt/crux-standalone). Current Docker image `juxt/crux-standalone:20.09-1.11.0`. **Via github dependency**
+- [x] Via [`HTTP`](https://opencrux.com/reference/http.html#start-http-server) using the [`HTTP API`](https://opencrux.com/reference/http.html#http-api). **Via github dependency**
+- [ ] Missing entity_history with time-stamps
 
 * [**Crux Getting Started**](https://opencrux.com/reference/get-started.html)
 * [**Crux FAQs**](https://opencrux.com/about/faq.html)
+* [**Rust Client** as inspiration](https://github.com/naomijub/transistor)
 
 ## Bitemporal Crux
 
