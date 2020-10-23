@@ -1,4 +1,4 @@
-defmodule Translixir.Client do
+defmodule Translixir.Http.Client do
   @moduledoc """
   Módule containing the Client configurations
   """
@@ -11,12 +11,22 @@ defmodule Translixir.Client do
   """
   def new(host, port) do
     HTTPoison.start()
-    client = %Translixir.Client{host: host, port: port}
+    client = %Translixir.Http.Client{host: host, port: port}
     Agent.start_link(fn -> client end)
   end
 
   @doc """
   `auth` includes field `:auth` at struct Client contained at <PID>, it is the authorization token
+
+  ```
+  {:ok, client} = Client.new("localhost", "3000")
+  Client.auth(client, "token")
+
+  assert Client.headers(client) == [
+            {"Content-Type", "application/edn"},
+            {"Authorization", "Bearer token"}
+          ]
+  ```
   """
   def auth(pid, auth) do
     Agent.update(pid, fn client ->
@@ -38,6 +48,11 @@ defmodule Translixir.Client do
   returns `[{"Content-Type", "application/edn"}, {"Authorization", "Bearer token"}]`
   else
   returns `[{"Content-Type", "application/edn"}]`
+
+  ```
+  {:ok, client} = Client.new("localhost", "3000")
+  assert Client.headers(client) == [{"Content-Type", "application/edn"}]
+  ```
   """
   def headers(pid) do
     content_type = {"Content-Type", "application/edn"}
@@ -51,9 +66,19 @@ defmodule Translixir.Client do
   end
 
   @doc """
-  `endpoint` returns the endpoin for Client at <PID>.
-  `:tx_log -> "http://base_url/tx-log"`
-  `:entity -> "http://#base_url/entity"`
+  `endpoint` returns the endpoin for Client at `<PID>`.
+  * `:tx_log => "http://base_url/tx-log"`
+  * `:entity => "http://#base_url/entity"`
+  * `:entity_tx => "http://base_url/entity-tx"`
+  * `:entity_history => "http://base_url/entity-history"`
+
+  ```
+  {:ok, client} = Client.new("localhost", "3000")
+  assert Client.endpoint(client, :tx_log) == "http://localhost:3000/tx-log"
+  assert Client.endpoint(client, :entity) == "http://localhost:3000/entity"
+  assert Client.endpoint(client, :entity_tx) == "http://localhost:3000/entity-tx"
+  assert Client.endpoint(client, :entity_history) == "http://localhost:3000/entity-history"
+  ```
   """
   def endpoint(pid, endpoint) do
     base_url = Agent.get(pid, fn client -> "#{client.host}:#{client.port}" end)
@@ -62,6 +87,7 @@ defmodule Translixir.Client do
       :tx_log -> "http://#{base_url}/tx-log"
       :entity -> "http://#{base_url}/entity"
       :entity_tx -> "http://#{base_url}/entity-tx"
+      :entity_history -> "http://#{base_url}/entity-history"
     end
   end
 end

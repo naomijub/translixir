@@ -2,12 +2,9 @@ defmodule Translixir do
   @moduledoc """
   Documentation for `Translixir`.
   """
-  alias Translixir.Client
-  alias Translixir.Time
-
-  def action(:put, value) do
-    "[[:crux.tx/put #{value}]]"
-  end
+  alias Translixir.Helpers.Time
+  alias Translixir.Http.Client
+  alias Translixir.Http.EntityHistory
 
   @spec tx_log({:ok, pid}, any) :: {:error} | {:ok, any}
   @doc """
@@ -32,7 +29,6 @@ defmodule Translixir do
 
     Example Response:
     `{:ok, "{:crux.tx/tx-id 7, :crux.tx/tx-time #inst \"2020-07-16T21:50:39.309-00:00\"}"}`
-
   """
   def tx_log({:ok, client}, actions) do
     url = Client.endpoint(client, :tx_log)
@@ -144,12 +140,6 @@ defmodule Translixir do
   #   end
   # end
 
-  @spec entity(
-          {:ok, atom | pid | {atom, any} | {:via, atom, any}},
-          any,
-          DateTime.t(),
-          DateTime.t()
-        ) :: {:error} | {:error, atom} | {:ok, any}
   @doc """
     `entity({:ok, <PID>}, entity_crux_id, transaction_time \\ "", valid_time \\ "")`
     * `transaction_time` and `valid_time` are in `DateTime` format
@@ -194,7 +184,6 @@ defmodule Translixir do
     `{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }`
 
   """
-  @spec entity!(pid | {atom, any} | {:via, atom, any}, any, DateTime.t(), DateTime.t()) :: any()
   def entity!(client, entity_id, tx_time \\ "", valid_time \\ "") when is_pid(client) do
     url = Time.build_timed_url(Client.endpoint(client, :entity), tx_time, valid_time)
     headers = Client.headers(client)
@@ -206,12 +195,6 @@ defmodule Translixir do
     end
   end
 
-  @spec entity_tx(
-          {:ok, atom | pid | {atom, any} | {:via, atom, any}},
-          any,
-          DateTime.t(),
-          DateTime.t()
-        ) :: {:error} | {:error, atom} | {:ok, any}
   @doc """
     `entity_tx({:ok, <PID>}, entity_crux_id transaction_time \\ "", valid_time \\ "")`
     * `transaction_time` and `valid_time` are in `DateTime` format
@@ -267,17 +250,78 @@ defmodule Translixir do
     end
   end
 
-  # entity-history
+  @spec entity_history({:ok, pid}, any, :asc | :desc, boolean) :: any
+  @doc """
+    `entity_history({:ok, <PID>}, entity_hash, order, with_docs \\ false)`
+    * `order` can be `:asc` or `:desc`
+
+    GET an CruxdD hash at CruxDB endpoint `/entity-history/<hash>?sort-order=<order>&with-docs=<with_docs>`
+
+    Returns:
+    `status_2XX` -> {:ok, body}
+    _ -> {:error}
+
+    Example `entity_hash`
+    `"9d2c7102d6408d465f85b0b35dfb209b34daadd1"`
+
+    Example Response (`with_docs = false`):
+    ```{:ok,
+        [%{
+        "crux.db/content-hash": %Eden.Tag{
+          name: "crux/id",
+          value: "9d2c7102d6408d465f85b0b35dfb209b34daadd1"
+        },
+        "crux.db/valid-time": ~U[2020-10-22 18:18:20.524Z],
+        "crux.tx/tx-id": 160,
+        "crux.tx/tx-time": ~U[2020-10-22 18:18:20.524Z]
+      },
+      ...]
+    }```
+  """
+  def entity_history({:ok, client}, entity_hash, order, with_docs \\ false)
+      when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
+    url = Client.endpoint(client, :entity_history)
+    headers = Client.headers(client)
+
+    EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
+  end
+
+  @spec entity_history!(pid, any, :asc | :desc, boolean) :: any
+  @doc """
+    `entity_history!(<PID>, entity_hash, order, with_docs \\ false)`
+    * `order` can be `:asc` or `:desc`
+
+    GET an CruxdD hash at CruxDB endpoint `/entity-history/<hash>?sort-order=<order>&with-docs=<with_docs>`
+
+    Returns:
+    `status_2XX` -> {:ok, body}
+    _ -> {:error}
+
+    Example `entity_hash`
+    `"9d2c7102d6408d465f85b0b35dfb209b34daadd1"`
+
+    Example Response (`with_docs = false`):
+    ```[
+      %{
+      "crux.db/content-hash": %Eden.Tag{
+        name: "crux/id",
+        value: "9d2c7102d6408d465f85b0b35dfb209b34daadd1"
+      },
+      "crux.db/valid-time": ~U[2020-10-22 18:18:20.524Z],
+      "crux.tx/tx-id": 160,
+      "crux.tx/tx-time": ~U[2020-10-22 18:18:20.524Z]
+    },
+    ...
+  ]```
+  """
+  def entity_history!(client, entity_hash, order, with_docs \\ false)
+      when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
+    url = Client.endpoint(client, :entity_history)
+    headers = Client.headers(client)
+
+    EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
+  end
+
   # entity-history with time
   # query
-
-  def init() do
-    put = action(:put, "{ :crux.db/id :jorge-3, :first-name \"Michael\", :last-name \"Jorge\", }")
-    client =  Client.new("localhost", "3000")
-
-    client |> tx_log(put)
-
-    client
-    |> entity(":jorge-3", DateTime.now!("Etc/UTC"))
-  end
 end
