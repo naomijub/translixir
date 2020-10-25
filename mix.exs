@@ -6,9 +6,9 @@ defmodule Translixir.MixProject do
   def project do
     [
       app: :translixir,
-      version: "0.2.0",
+      version: "0.3.0",
       description: "Crux Datalog DB Client",
-      elixir: "~> 1.11",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       package: package(),
       deps: deps(),
