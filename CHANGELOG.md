@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.o
+## v0.3.0
   - Includes Query namespace to create queries for `query` function.
   - Refactors timed queries to apply dialyzer
   - Includes Github Actions
