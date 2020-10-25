@@ -168,17 +168,19 @@ assert actual == expected
 
 ```elixir
 alias Translixir.Http.Client
-alias Translixir.Model.Actions
+alias Translixir.Model.Action
 
 client = Client.new("localhost", "3000")
-put = Actions.new()
-  |> Actions.add_actions(:hello, %{first_name: "Hello", last_name: "World"})
-  |> Actions.add_actions(:delete_id)
-  |> Actions.actions()
+put = Action.new()
+  |> Action.add_action(Action.put(:hello, %{first_name: "Hello", last_name: "World"}))
+  |> Action.add_action(Action.delete(:delete_id))
+  |> Action.actions()
 
 client |> Translixir.tx_log(put)
+# {:ok, %{"crux.tx/tx-id": 7, "crux.tx/tx-time": ~U[2020-10-25 04:33:41.102Z]}}
 
-client |> Translixir.entity(:hello)
+client |> Translixir.entity(:hello) |> IO.inspect()
+# {:ok, %{"crux.db/id": :hello, first_name: "Hello", last_name: "World"}}
 
 ```
 
