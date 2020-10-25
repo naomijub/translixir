@@ -18,7 +18,7 @@ defmodule Translixir.Http.Client do
   @doc """
   `auth` includes field `:auth` at struct Client contained at <PID>, it is the authorization token
 
-  ```
+  ```elixir
   {:ok, client} = Client.new("localhost", "3000")
   Client.auth(client, "token")
 
@@ -49,7 +49,7 @@ defmodule Translixir.Http.Client do
   else
   returns `[{"Content-Type", "application/edn"}]`
 
-  ```
+  ```elixir
   {:ok, client} = Client.new("localhost", "3000")
   assert Client.headers(client) == [{"Content-Type", "application/edn"}]
   ```
@@ -72,7 +72,7 @@ defmodule Translixir.Http.Client do
   * `:entity_tx => "http://base_url/entity-tx"`
   * `:entity_history => "http://base_url/entity-history"`
 
-  ```
+  ```elixir
   {:ok, client} = Client.new("localhost", "3000")
   assert Client.endpoint(client, :tx_log) == "http://localhost:3000/tx-log"
   assert Client.endpoint(client, :entity) == "http://localhost:3000/entity"

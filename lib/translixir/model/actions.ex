@@ -4,13 +4,16 @@ defmodule Translixir.Model.Action do
   This module is to assist on the creation of this Actions.
   """
 
+  @spec put(atom | integer, map) :: <<_::64, _::_*8>>
+
   @doc """
   Creates a `tx_log::put` with argument `id, value, valid_time`. It inserts value in CruxDb
   * `id` can be `atom` or `int`
   * `value` can be `struct` or `map`
   * `valid_time` is `DateTime` and optional
 
-  ```
+
+  ```elixir
   put = Actions.put(3, %{first_name: "hello", last_name: "world"})
 
   put == "[:crux.tx/put {:crux.db/id 3 :first_name \"hello\" :last_name \"world\"}]"
@@ -21,7 +24,18 @@ defmodule Translixir.Model.Action do
 
   ```
   """
-  def put(id, value, valid_time \\ "")
+  def put(id, value)
+      when (is_atom(id) or is_integer(id)) and
+             (is_struct(value) or is_map(value)) do
+    internal_put(id, value)
+  end
+
+  @spec put(
+          atom | integer,
+          map,
+          any
+        ) :: binary
+  def put(id, value, valid_time)
       when (is_atom(id) or is_integer(id)) and
              (is_struct(value) or is_map(value)) do
     internal_put(id, value, valid_time)
@@ -48,12 +62,29 @@ defmodule Translixir.Model.Action do
     end
   end
 
+  defp internal_put(id, value) when is_struct(value) do
+    struct = Map.from_struct(value)
+    put = Map.put_new(struct, :"crux.db/id", id)
+    encoded = Eden.encode!(put)
+
+    "[:crux.tx/put #{encoded}]"
+  end
+
+  defp internal_put(id, value) when is_map(value) do
+    put = Map.put_new(value, :"crux.db/id", id)
+    encoded = Eden.encode!(put)
+
+    "[:crux.tx/put #{encoded}]"
+  end
+
+  @spec delete(atom | integer) :: <<_::64, _::_*8>>
   @doc """
   Creates a `tx_log::delete` with argument `id, valid_time`. Deletes a Document by `id` at a specific `valid_time`
   * `id` can be `atom` or `int`
   * `valid_time` is `DateTime` and optional
 
-  ```
+  ```elixir
+
   delete_date = Action.delete(:my_id, DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC"))
 
   delete_date == "[:crux.tx/delete :my_id #inst \"2020-10-10T13:26:08.003%2B00:00\"]"
@@ -63,7 +94,17 @@ defmodule Translixir.Model.Action do
   delete_no_date == == "[:crux.tx/delete :my_id]"
   ```
   """
-  def delete(id, valid_time \\ "") when is_atom(id) or is_integer(id) do
+  def delete(id) when is_atom(id) or is_integer(id) do
+    id = Eden.encode!(id)
+
+    "[:crux.tx/delete #{id}]"
+  end
+
+  @spec delete(
+          atom | integer,
+          any
+        ) :: binary
+  def delete(id, valid_time) when is_atom(id) or is_integer(id) do
     id = Eden.encode!(id)
 
     case Timex.format(valid_time, "{ISO:Extended}") do
@@ -72,13 +113,25 @@ defmodule Translixir.Model.Action do
     end
   end
 
+  @spec match(atom | integer, any) :: <<_::64, _::_*8>>
   @doc """
   Creates a `tx_log::match` with argument `id, match, valid_time`
   * `id` can be `atom` or `int`
   * `match` matching edn
   * `valid_time` is `DateTime` and optional
   """
-  def match(id, match, valid_time \\ "") when is_atom(id) or is_integer(id) do
+  def match(id, match) when is_atom(id) or is_integer(id) do
+    id = Eden.encode!(id)
+
+    "[:crux.tx/match #{id} #{match}]"
+  end
+
+  @spec match(
+          atom | integer,
+          any,
+          any
+        ) :: binary
+  def match(id, match, valid_time) when is_atom(id) or is_integer(id) do
     id = Eden.encode!(id)
 
     case Timex.format(valid_time, "{ISO:Extended}") do
@@ -94,7 +147,7 @@ defmodule Translixir.Model.Action do
   Creates a `tx_log::evict` with argument `id`
   * `id` can be `atom` or `int`
 
-  ```
+  ```elixir
   evict = Action.evict(:hello)
 
   evict ==  "[:crux.tx/evict :hello]"
@@ -118,8 +171,10 @@ defmodule Translixir.Model.Action do
   @doc """
   Adds a new `Action` (`put, delete, match, evict`) into the `Action Agent`
 
-  ```
+  ```elixir
   Action.add_action(Action.new(), Action.evict(:hello))
+  Action.add_action(Action.new(), Action.delete(:hello))
+  Action.add_action(Action.new(), Action.put(:hello, %{name: "hello", age: 4300000000}))
   ```
   """
   @spec add_action(pid, any) :: pid
@@ -131,12 +186,15 @@ defmodule Translixir.Model.Action do
   @doc """
   Generates the proper encoding for `Actions` present in `Action Agent`
 
-  ```
+  ```elixir
   actions =
       Action.new()
       |> Action.add_action(Action.evict(:hello))
       |> Action.add_action(
         Action.delete(:my_id, DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC"))
+      )
+      |> Action.add_action(
+        Action.put(:hello, %{name: "hello", age: 4300000000})
       )
       |> Action.actions()
 

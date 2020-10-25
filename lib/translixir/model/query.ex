@@ -1,8 +1,8 @@
 defmodule Translixir.Model.Query do
   @moduledoc """
-  Query module is responsible for facilitationg the creation of a query to send to endpoint `/query`:
+  Query module is responsible for facilitationg the creation of a query to send to endpoint [`/query`](https://www.opencrux.com/reference/20.09-1.12.1/queries.html):
 
-  ```
+  ```elixir
     query =
       Query.find(%{}, [:h, :q])
       |> Query.where(["?p1 :name ?n", "?p1 :is-sql ?s"])
@@ -50,6 +50,7 @@ defmodule Translixir.Model.Query do
     Map.put_new(map, :args, Eden.Symbol.new("[#{args_str}]"))
   end
 
+  @spec order_by(map, maybe_improper_list) :: map
   def order_by(map, orders) when is_list(orders) do
     order_str = orders |> Enum.map(fn e -> "[#{e}]" end) |> Enum.join(" ")
     Map.put_new(map, :"order-by", Eden.Symbol.new("[#{order_str}]"))
@@ -70,6 +71,7 @@ defmodule Translixir.Model.Query do
     Map.put_new(map, :"full-results?", true)
   end
 
+  @spec build(map) :: binary
   def build(map) when not is_nil(map.find) and not is_nil(map.where) do
     query = %{query: map}
     query |> Eden.encode!()

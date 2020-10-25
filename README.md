@@ -42,30 +42,146 @@ Reference [crux bitemporality](https://opencrux.com/about/bitemporality.html) an
 
 The package can be installed by adding `translixir` to your list of
 dependencies in `mix.exs`:
+* For now only via github. Dependent crates are not on hex [jfacorro/Eden](https://github.com/jfacorro/Eden) and [jfacorro/elixir-array](https://github.com/jfacorro/elixir-array).
 
 ```elixir
 def deps do
   [
-    {:translixir, "~> 0.1.1"}
+    {:translixir, github: "marianoguerra/erldn"}
   ]
 end
 ```
 
 ## Creating a Crux Client
+
 All operations with Translixir required a `Translixir.Client`. You can instantiate a new `Agent` containing the required information for a request with `Translixir.Client.new(host, port)` and set authorization header token with `Translixir.Client.auth(<pid>, token)`.
 
 ```elixir
-  # Simple Client
-    {:ok, client} = Client.new("localhost","3000")
-    expected = %Client{host: "localhost", port: "3000"}
-    assert Client.get(client) == expected
+# Simple Client
+  {:ok, client} = Client.new("localhost","3000")
+  expected = %Client{host: "localhost", port: "3000"}
+  assert Client.get(client) == expected
 
 
-  # Client with Authorization
-    {:ok, client} = Client.new("localhost","3000")
-    Client.auth(client, "token")
-    expected = %Client{host: "localhost", port: "3000", auth: "token"}
-    assert Client.get(client) == expected
+# Client with Authorization
+  {:ok, client} = Client.new("localhost","3000")
+  Client.auth(client, "token")
+  expected = %Client{host: "localhost", port: "3000", auth: "token"}
+  assert Client.get(client) == expected
+```
+
+## Building a `tx_log::Action` to Insert in database
+* use module `Translixir.Model.Action`
+
+```elixir
+alias Translixir.Model.Action
+
+actions =
+  Action.new()
+  |> Action.add_action(Action.evict(:hello))
+  |> Action.add_action(
+    Action.delete(:my_id, DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC"))
+  )
+  |> Action.actions()
+
+assert actions ==
+          "[[:crux.tx/evict :hello] [:crux.tx/delete :my_id #inst \"2020-10-10T13:26:08.003%2B00:00\"]]"
+```
+
+Possible Actions:
+```elixir
+alias Translixir.Model.Action
+
+actual = Action.put(:my_id, %{first_name: "test", last_name: "wow"})
+expected = "[:crux.tx/put {:crux.db/id :my_id, :first_name \"test\", :last_name \"wow\"}]"
+assert actual == expected
+
+actual =
+  Action.put(
+    :my_id,
+    %{first_name: "test", last_name: "wow"},
+    DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC")
+  )
+expected =
+  "[:crux.tx/put {:crux.db/id :my_id, :first_name \"test\", :last_name \"wow\"} #inst \"2020-10-10T13:26:08.003%2B00:00\"]"
+assert actual == expected
+
+actual = Action.delete(:my_id)
+expected = "[:crux.tx/delete :my_id]"
+assert actual == expected
+
+actual = Action.delete(:my_id, DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC"))
+expected = "[:crux.tx/delete :my_id #inst \"2020-10-10T13:26:08.003%2B00:00\"]"
+assert actual == expected
+
+assert Action.evict(3) == "[:crux.tx/evict 3]"
+assert Action.evict(:my_id) == "[:crux.tx/evict :my_id]"
+```
+
+## Building a Query
+* Use module `Translixir.Model.Query`
+
+```elixir
+alias Translixir.Model.Query
+
+actual =
+  Query.find(%{}, ["?h", "?q"])
+  |> Query.where(["?p1 :name ?n", "?p1 :is-sql true"])
+  |> Query.build()
+expected = "{:query {:find [?h ?q], :where [[?p1 :name ?n] [?p1 :is-sql true]]}}"
+assert actual == expected
+
+assert catch_error(Query.find(%{}, [":hello", ":world"])) ==
+          %RuntimeError{message: "All keys should be atoms or strings starting with `?`"}
+
+actual =
+  Query.find(%{}, ["?h", "?q"])
+  |> Query.where(["?p1 :name ?n", "?p1 :is-sql ?s"])
+  |> Query.args(["?s true"])
+  |> Query.build()
+expected =
+  "{:query {:args [{?s true}], :find [?h ?q], :where [[?p1 :name ?n] [?p1 :is-sql ?s]]}}"
+assert actual == expected
+
+actual =
+  Query.find(%{}, ["?h", "?q"])
+  |> Query.where(["?p1 :name ?n", "?p1 :is-sql ?s"])
+  |> Query.limit(5)
+  |> Query.offset(20)
+  |> Query.build()
+expected =
+  "{:query {:find [?h ?q], :limit 5, :offset 20, :where [[?p1 :name ?n] [?p1 :is-sql ?s]]}}"
+assert actual == expected
+
+actual =
+  Query.find(%{}, [:h, :q])
+  |> Query.where(["?p1 :name ?n", "?p1 :is-sql ?s"])
+  |> Query.order_by(["?s true"])
+  |> Query.with_full_results()
+  |> Query.build()
+expected =
+  "{:query {:find [?h ?q], :full-results? true, :order-by [[?s true]], :where [[?p1 :name ?n] [?p1 :is-sql ?s]]}}"
+assert actual == expected
+```
+
+## Functions examples
+
+```elixir
+alias Translixir.Http.Client
+alias Translixir.Model.Action
+
+client = Client.new("localhost", "3000")
+put = Action.new()
+  |> Action.add_action(Action.put(:hello, %{first_name: "Hello", last_name: "World"}))
+  |> Action.add_action(Action.delete(:delete_id))
+  |> Action.actions()
+
+client |> Translixir.tx_log(put)
+# {:ok, %{"crux.tx/tx-id": 7, "crux.tx/tx-time": ~U[2020-10-25 04:33:41.102Z]}}
+
+client |> Translixir.entity(:hello) |> IO.inspect()
+# {:ok, %{"crux.db/id": :hello, first_name: "Hello", last_name: "World"}}
+
 ```
 
 ## License
