@@ -48,7 +48,7 @@ dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:translixir, github: "marianoguerra/erldn"}
+    {:translixir, github: "naomijub/translixir"}
   ]
 end
 ```
