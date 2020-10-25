@@ -16,7 +16,7 @@ defmodule Translixir.Http.Client do
   end
 
   @doc """
-  `auth` includes field `:auth` at struct Client contained at `<PID>`, it is the authorization token
+  `auth` includes field `:auth` at struct Client contained at <PID>, it is the authorization token
 
   ```elixir
   {:ok, client} = Client.new("localhost", "3000")
@@ -35,7 +35,6 @@ defmodule Translixir.Http.Client do
     end)
   end
 
-  @spec get(atom | pid | {atom, any} | {:via, atom, any}) :: any
   @doc """
   `get` returns struct `Client` contained at <PID>
   """
@@ -43,13 +42,12 @@ defmodule Translixir.Http.Client do
     Agent.get(pid, fn client -> client end)
   end
 
-  @spec headers(atom | pid | {atom, any} | {:via, atom, any}) :: any
   @doc """
   `headers` returns the request headers for Client at <PID>.
   If `:auth` is present
-  * returns `[{"Content-Type", "application/edn"}, {"Authorization", "Bearer token"}]`
+  returns `[{"Content-Type", "application/edn"}, {"Authorization", "Bearer token"}]`
   else
-  * returns `[{"Content-Type", "application/edn"}]`
+  returns `[{"Content-Type", "application/edn"}]`
 
   ```elixir
   {:ok, client} = Client.new("localhost", "3000")
@@ -67,10 +65,6 @@ defmodule Translixir.Http.Client do
     end)
   end
 
-  @spec endpoint(
-          atom | pid | {atom, any} | {:via, atom, any},
-          :entity | :entity_history | :entity_tx | :query | :tx_log
-        ) :: <<_::64, _::_*8>>
   @doc """
   `endpoint` returns the endpoin for Client at `<PID>`.
   * `:tx_log => "http://base_url/tx-log"`

@@ -240,7 +240,6 @@ defmodule Translixir do
     POSTs an ID at CruxDB endpoint [`/entity-tx`](https://www.opencrux.com/reference/20.09-1.12.1/http.html#entity-tx)
     * `transaction_time` and `valid_time` are in `DateTime` format
 
-
     Returns:
     * `status_2XX` -> {:ok, body}
     * _ -> {:error}
@@ -303,7 +302,6 @@ defmodule Translixir do
     2. `entity_tx!(<PID>, entity_crux_id, transaction_time, valid_time)`
     POSTs an ID at CruxDB endpoint `/entity-tx`
     * `transaction_time` and `valid_time` are in `DateTime` format
-
 
     Returns:
     * `status_2XX` -> body
@@ -394,7 +392,8 @@ defmodule Translixir do
     EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
   end
 
-  @spec entity_history!(pid, any, :asc | :desc, boolean) :: any
+  @spec query({:ok, atom | pid | {atom, any} | {:via, atom, any}}, any) ::
+          {:error} | {:error, atom} | {:ok, any}
   @doc """
     `entity_history!(<PID>, entity_hash, order, with_docs \\ false)`
     GETs an CruxdD hash at CruxDB endpoint `/entity-history/<hash>?sort-order=<order>&with-docs=<with_docs>`
@@ -414,30 +413,7 @@ defmodule Translixir do
     [
       %{
       "crux.db/content-hash": %Eden.Tag{
-        name: "crux/id",
-        value: "9d2c7102d6408d465f85b0b35dfb209b34daadd1"
-      },
-      "crux.db/valid-time": ~U[2020-10-22 18:18:20.524Z],
-      "crux.tx/tx-id": 160,
-      "crux.tx/tx-time": ~U[2020-10-22 18:18:20.524Z]
-    },
-    ...
-  ]```
-  """
-  def entity_history!(client, entity_hash, order, with_docs \\ false)
-      when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
-    url = Client.endpoint(client, :entity_history)
-    headers = Client.headers(client)
-
     EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
-  end
-
-  @spec query({:ok, pid}, any) :: {:error} | {:ok, any}
-  @doc """
-    `query({:ok, <PID>}, query)` POSTs a `Query` at CruxDB endpoint [`/query`](https://www.opencrux.com/reference/20.09-1.12.1/queries.html)
-
-    ```elixir
-    client =  Client.new("localhost", "3000")
     query = %{}
       |> Query.find(["?n"])
       |> Query.where([

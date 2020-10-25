@@ -5,11 +5,13 @@ defmodule Translixir.Model.Action do
   """
 
   @spec put(atom | integer, map) :: <<_::64, _::_*8>>
+
   @doc """
   Creates a `tx_log::put` with argument `id, value, valid_time`. It inserts value in CruxDb
   * `id` can be `atom` or `int`
   * `value` can be `struct` or `map`
   * `valid_time` is `DateTime` and optional
+
 
   ```elixir
   put = Actions.put(3, %{first_name: "hello", last_name: "world"})
@@ -82,6 +84,7 @@ defmodule Translixir.Model.Action do
   * `valid_time` is `DateTime` and optional
 
   ```elixir
+
   delete_date = Action.delete(:my_id, DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC"))
 
   delete_date == "[:crux.tx/delete :my_id #inst \"2020-10-10T13:26:08.003%2B00:00\"]"
