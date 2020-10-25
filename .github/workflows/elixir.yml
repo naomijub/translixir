@@ -17,7 +17,7 @@ jobs:
     - name: Set up Elixir
       uses: actions/setup-elixir@v1
       with:
-        elixir-version: '1.10.3' # Define the elixir version [required]
+        elixir-version: '1.11' # Define the elixir version [required]
         otp-version: '22.3' # Define the OTP version [required]
     - name: Restore dependencies cache
       uses: actions/cache@v2
@@ -29,3 +29,7 @@ jobs:
       run: mix deps.get
     - name: Run tests
       run: mix test
+    - name: Run lint
+      run: mix credo --strict
+    - name: Run spec
+      run: mix dialyzer --format dialyxir
