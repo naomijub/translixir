@@ -8,7 +8,7 @@ defmodule Translixir.MixProject do
       app: :translixir,
       version: "0.3.0",
       description: "Crux Datalog DB Client",
-      elixir: "~> 1.11",
+      elixir: "~> 1.11.1",
       start_permanent: Mix.env() == :prod,
       package: package(),
       deps: deps(),
@@ -27,9 +27,9 @@ defmodule Translixir.MixProject do
     [
       {:httpoison, "~> 1.6"},
       {:timex, "~> 3.5"},
-      {:credo, "~> 1.4.1", only: [:dev, :test, :ci], runtime: false},
+      {:credo, "~> 1.5.0", only: [:dev, :test, :ci], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
-      {:eden, git: "git://github.com/jfacorro/Eden.git"},
+      {:eden, "~> 2.1.0"},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end
