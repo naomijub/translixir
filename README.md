@@ -43,12 +43,11 @@ Reference [crux bitemporality](https://opencrux.com/about/bitemporality.html) an
 
 The package can be installed by adding `translixir` to your list of
 dependencies in `mix.exs`:
-* For now only via github. Dependent crates are not on hex [jfacorro/Eden](https://github.com/jfacorro/Eden) and [jfacorro/elixir-array](https://github.com/jfacorro/elixir-array).
 
 ```elixir
 def deps do
   [
-    {:translixir, github: "naomijub/translixir"}
+    {:translixir, "~> 0.3"}
   ]
 end
 ```
