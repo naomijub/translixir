@@ -48,7 +48,7 @@ dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:translixir, github: "naomijub/translixir"}
+    {:translixir, "~> 0.3"}
   ]
 end
 ```
