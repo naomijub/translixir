@@ -5,6 +5,9 @@ defmodule Translixir do
   alias Translixir.Helpers.Time
   alias Translixir.Http.Client
   alias Translixir.Http.EntityHistory
+  alias Translixir.Http.HttpClient
+
+  alias Translixir.Model.Action
 
   @spec tx_log({:ok, pid}, any) :: {:error} | {:ok, any}
   @doc """
@@ -32,7 +35,8 @@ defmodule Translixir do
   def tx_log({:ok, client}, actions) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.post(url, "#{actions}", headers)
+    response = HttpClient.post(url, "#{actions}", headers)
+    # response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -460,5 +464,18 @@ defmodule Translixir do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
       _ -> raise "POST at query with body #{query} did not return 200"
     end
+  end
+
+  def init() do
+    client = Client.new("localhost", "3000")
+
+    put =
+      Action.new()
+      |> Action.add_action(Action.put(:jorge, %{name: "hello"}))
+      |> Action.actions()
+
+    client
+    |> tx_log(put)
+    |> IO.inspect()
   end
 end
