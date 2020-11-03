@@ -10,7 +10,7 @@ defmodule TranslixirTest do
   @client Client.new("localhost", "3000")
 
   test "tx_log puts info" do
-    Translixir.HttpBehaviourMock
+    Translixir.MockHTTPoison
     |> expect(:post, fn _, _, _ ->
       {:ok,
        %HTTPoison.Response{
@@ -24,7 +24,7 @@ defmodule TranslixirTest do
       |> Action.add_action(Action.put(:jorge, %{name: "hello"}))
       |> Action.actions()
 
-    result = Translixir.tx_log(@client, put)
+    result = Translixir.tx_log(Client.new("localhost", "3000"), put)
     assert {:ok, %{"crux.tx/tx-id": 1, "crux.tx/tx-time": ~U[2020-11-01 02:33:47.525Z]}} == result
   end
 end

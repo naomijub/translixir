@@ -5,9 +5,10 @@ defmodule Translixir do
   alias Translixir.Helpers.Time
   alias Translixir.Http.Client
   alias Translixir.Http.EntityHistory
-  alias Translixir.Http.HttpClient
+  # alias Translixir.Http.HttpClient
 
   alias Translixir.Model.Action
+  @http_client Application.get_env(:translixir, :httpoison)
 
   @spec tx_log({:ok, pid}, any) :: {:error} | {:ok, any}
   @doc """
@@ -35,7 +36,7 @@ defmodule Translixir do
   def tx_log({:ok, client}, actions) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HttpClient.post(url, "#{actions}", headers)
+    response = @http_client.post(url, "#{actions}", headers)
     # response = HTTPoison.post(url, "#{actions}", headers)
 
     case response do
