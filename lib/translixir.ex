@@ -6,6 +6,9 @@ defmodule Translixir do
   alias Translixir.Http.Client
   alias Translixir.Http.EntityHistory
 
+  # credo:disable-for-next-line
+  @http_client Application.get_env(:translixir, :httpoison)
+
   @spec tx_log({:ok, pid}, any) :: {:error} | {:ok, any}
   @doc """
     `tx_log({:ok, <PID>}, actions)` POSTs a collection of `Action` at CruxDB endpoint [`/tx-log`](https://www.opencrux.com/reference/20.09-1.12.1/http.html#tx-log-post)
@@ -32,7 +35,7 @@ defmodule Translixir do
   def tx_log({:ok, client}, actions) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.post(url, "#{actions}", headers)
+    response = @http_client.post(url, "#{actions}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -52,7 +55,7 @@ defmodule Translixir do
   def tx_log!(client, actions) when is_pid(client) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.post(url, "#{actions}", headers)
+    response = @http_client.post(url, "#{actions}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
@@ -81,7 +84,7 @@ defmodule Translixir do
   def tx_logs({:ok, client}) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.get(url, headers)
+    response = @http_client.get(url, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -100,7 +103,7 @@ defmodule Translixir do
   def tx_logs!(client) when is_pid(client) do
     url = Client.endpoint(client, :tx_log)
     headers = Client.headers(client)
-    response = HTTPoison.get(url, headers)
+    response = @http_client.get(url, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
@@ -139,7 +142,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -164,7 +167,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -203,7 +206,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
@@ -224,7 +227,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
@@ -263,7 +266,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -288,7 +291,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -327,7 +330,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
@@ -348,7 +351,7 @@ defmodule Translixir do
         false -> "{:eid #{entity_id}}"
       end
 
-    response = HTTPoison.post(url, entity_data, headers)
+    response = @http_client.post(url, entity_data, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
@@ -439,7 +442,7 @@ defmodule Translixir do
   def query({:ok, client}, query) do
     url = Client.endpoint(client, :query)
     headers = Client.headers(client)
-    response = HTTPoison.post(url, "#{query}", headers)
+    response = @http_client.post(url, "#{query}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode(content.body)
@@ -454,7 +457,7 @@ defmodule Translixir do
   def query!(client, query) when is_pid(client) do
     url = Client.endpoint(client, :query)
     headers = Client.headers(client)
-    response = HTTPoison.post(url, "#{query}", headers)
+    response = @http_client.post(url, "#{query}", headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)

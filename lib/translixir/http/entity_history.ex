@@ -1,5 +1,8 @@
 defmodule Translixir.Http.EntityHistory do
   @moduledoc false
+  # credo:disable-for-next-line
+  @http_client Application.get_env(:translixir, :httpoison)
+
   @spec entity_history(binary, any, any, boolean(), :asc | :desc) :: any
   def entity_history(url, headers, entity_hash, with_docs, :asc) do
     complete_url = "#{url}/#{entity_hash}?sort-order=asc&with-docs=#{with_docs}"
@@ -17,7 +20,7 @@ defmodule Translixir.Http.EntityHistory do
 
   @spec make_history_req(binary, any, any) :: any
   def make_history_req(url, headers, entity_hash) do
-    response = HTTPoison.get(url, headers)
+    response = @http_client.get(url, headers)
 
     case response do
       {:ok, content} when content.status_code < 300 -> Eden.decode!(content.body)
