@@ -1,3 +1,3 @@
 use Mix.Config
 
-config :translixir, :httpoison, HTTPoision
+config :translixir, :httpoison, HTTPoison
