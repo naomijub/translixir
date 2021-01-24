@@ -4,6 +4,7 @@ defmodule TranslixirHappyPathTest do
   alias Translixir
   alias Translixir.Http.Client
   alias Translixir.Model.Action
+  alias Translixir.Model.HistoryTimeRange
   alias Translixir.Model.Query
 
   import Mox
@@ -211,6 +212,74 @@ defmodule TranslixirHappyPathTest do
         "33f927344e079e00d3fa45d8833b04e735223eec",
         :asc,
         true
+      )
+
+    assert result ==
+             [
+               %{
+                 "crux.db/content-hash": %Eden.Tag{
+                   name: "crux/id",
+                   value: "d5c474af4ced822d951d0d2da2d75cf946bca62c"
+                 },
+                 "crux.db/doc": %{"crux.db/id": :jorge, name: "hello"},
+                 "crux.db/valid-time": ~U[2020-11-01 02:33:13.371Z],
+                 "crux.tx/tx-id": 0,
+                 "crux.tx/tx-time": ~U[2020-11-01 02:33:13.371Z]
+               },
+               %{
+                 "crux.db/content-hash": %Eden.Tag{
+                   name: "crux/id",
+                   value: "d5c474af4ced822d951d0d2da2d75cf946bca62c"
+                 },
+                 "crux.db/doc": %{"crux.db/id": :jorge, name: "hello"},
+                 "crux.db/valid-time": ~U[2020-11-01 02:33:47.525Z],
+                 "crux.tx/tx-id": 1,
+                 "crux.tx/tx-time": ~U[2020-11-01 02:33:47.525Z]
+               },
+               %{
+                 "crux.db/content-hash": %Eden.Tag{
+                   name: "crux/id",
+                   value: "d5c474af4ced822d951d0d2da2d75cf946bca62c"
+                 },
+                 "crux.db/doc": %{"crux.db/id": :jorge, name: "hello"},
+                 "crux.db/valid-time": ~U[2020-11-04 00:07:29.057Z],
+                 "crux.tx/tx-id": 2,
+                 "crux.tx/tx-time": ~U[2020-11-04 00:07:29.057Z]
+               }
+             ]
+  end
+
+  test "entity timed history" do
+    Translixir.MockHTTPoison
+    |> expect(:get, fn
+      "http://localhost:3000/entity-history/33f927344e079e00d3fa45d8833b04e735223eec?sort-order=asc&with-docs=true&end-tx-time=2020-10-10T13:26:08.003%2B00:00&end-valid-time=2020-10-10T13:26:08.003%2B00:00&start-tx-time=2020-10-10T13:26:08.003%2B00:00&start-valid-time=2020-10-10T13:26:08.003%2B00:00",
+      [{"Content-Type", "application/edn"}] ->
+        {:ok,
+         %HTTPoison.Response{
+           body:
+             "({:crux.tx/tx-time #inst \"2020-11-01T02:33:13.371-00:00\", :crux.tx/tx-id 0, :crux.db/valid-time #inst \"2020-11-01T02:33:13.371-00:00\", :crux.db/content-hash #crux/id \"d5c474af4ced822d951d0d2da2d75cf946bca62c\", :crux.db/doc {:crux.db/id :jorge, :name \"hello\"}}
+            {:crux.tx/tx-time #inst \"2020-11-01T02:33:47.525-00:00\", :crux.tx/tx-id 1, :crux.db/valid-time #inst \"2020-11-01T02:33:47.525-00:00\", :crux.db/content-hash #crux/id \"d5c474af4ced822d951d0d2da2d75cf946bca62c\", :crux.db/doc {:crux.db/id :jorge, :name \"hello\"}}
+            {:crux.tx/tx-time #inst \"2020-11-04T00:07:29.057-00:00\", :crux.tx/tx-id 2, :crux.db/valid-time #inst \"2020-11-04T00:07:29.057-00:00\", :crux.db/content-hash #crux/id \"d5c474af4ced822d951d0d2da2d75cf946bca62c\", :crux.db/doc {:crux.db/id :jorge, :name \"hello\"}})",
+           status_code: 200
+         }}
+    end)
+
+    time = DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC")
+
+    ranges = %HistoryTimeRange{
+      start_valid_time: time,
+      end_valid_time: time,
+      start_tx_time: time,
+      end_tx_time: time
+    }
+
+    result =
+      Translixir.entity_history_timed(
+        Client.new("localhost", "3000"),
+        "33f927344e079e00d3fa45d8833b04e735223eec",
+        :asc,
+        true,
+        ranges
       )
 
     assert result ==

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.0
+  - Includes Translixir function `entity_history_timed`.
+  - Function `entity_history_timed` uses struct `Translixir.Model.HistoryTimeRange` for time ranges.
+
 ## v0.3.0
   - Includes Query namespace to create queries for `query` function.
   - Refactors timed queries to apply dialyzer

@@ -5,6 +5,7 @@ defmodule Translixir do
   alias Translixir.Helpers.Time
   alias Translixir.Http.Client
   alias Translixir.Http.EntityHistory
+  alias Translixir.Model.HistoryTimeRange
 
   # credo:disable-for-next-line
   @http_client Application.get_env(:translixir, :httpoison)
@@ -393,6 +394,57 @@ defmodule Translixir do
     headers = Client.headers(client)
 
     EntityHistory.entity_history(url, headers, entity_hash, with_docs, order)
+  end
+
+  @spec entity_history_timed({:ok, pid}, any, :asc | :desc, boolean, HistoryTimeRange.t()) :: any
+  @doc """
+    `entity_history_timed({:ok, <PID>}, entity_hash, order, with_docs, timed)`
+    GETs an CruxdD hash at CruxDB endpoint [`/entity-history/<hash>?sort-order=<order>&with-docs=<with_docs>`](https://www.opencrux.com/reference/20.09-1.12.1/http.html#entity-history)
+    * `order` can be `:asc` or `:desc`
+    * `timed` is structured as
+    ```
+    %HistoryTimeRange{
+      start_valid_time: DateTime.t(),
+      end_valid_time: DateTime.t(),
+      start_tx_time: DateTime.t(),
+      endt_tx_time: DateTime.t(),
+    }
+    ```
+
+    Returns:
+    * `status_2XX` -> {:ok, body}
+    * _ -> {:error}
+
+    Example `entity_hash`:
+    * `"9d2c7102d6408d465f85b0b35dfb209b34daadd1"`
+
+    Example Response (`with_docs = false`):
+    ```elixir
+    {:ok, [
+      %{
+        "crux.db/content-hash": %Eden.Tag{
+          name: "crux/id",
+          value: "9d2c7102d6408d465f85b0b35dfb209b34daadd1"
+        },
+        "crux.db/valid-time": ~U[2020-10-22 18:18:20.524Z],
+        "crux.tx/tx-id": 160,
+        "crux.tx/tx-time": ~U[2020-10-22 18:18:20.524Z]
+      },
+      ...]
+    }```
+  """
+  def entity_history_timed(
+        {:ok, client},
+        entity_hash,
+        order,
+        with_docs,
+        %HistoryTimeRange{} = timed
+      )
+      when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
+    url = Client.endpoint(client, :entity_history)
+    headers = Client.headers(client)
+
+    EntityHistory.entity_history_timed(url, headers, entity_hash, with_docs, order, timed)
   end
 
   @spec query({:ok, atom | pid | {atom, any} | {:via, atom, any}}, any) ::
