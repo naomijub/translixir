@@ -265,8 +265,12 @@ defmodule TranslixirHappyPathTest do
     end)
 
     time = DateTime.from_naive!(~N[2020-10-10 13:26:08.003], "Etc/UTC")
-    ranges = %HistoryTimeRange {
-      start_valid_time: time, end_valid_time: time, start_tx_time: time, end_tx_time: time
+
+    ranges = %HistoryTimeRange{
+      start_valid_time: time,
+      end_valid_time: time,
+      start_tx_time: time,
+      end_tx_time: time
     }
 
     result =

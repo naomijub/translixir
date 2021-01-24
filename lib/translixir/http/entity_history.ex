@@ -31,7 +31,10 @@ defmodule Translixir.Http.EntityHistory do
   end
 
   @spec entity_history_timed(
-          binary, any, any, boolean(),
+          binary,
+          any,
+          any,
+          boolean(),
           :asc | :desc,
           Translixir.Model.HistoryTimeRange.t()
         ) :: any
@@ -52,12 +55,14 @@ defmodule Translixir.Http.EntityHistory do
   end
 
   @spec time_ranges(Translixir.Model.HistoryTimeRange.t()) :: binary
-  def time_ranges(%HistoryTimeRange{ } = time) do
+  def time_ranges(%HistoryTimeRange{} = time) do
     time
-    |> Map.from_struct
+    |> Map.from_struct()
     |> Enum.filter(fn {_, v} -> v != nil end)
     |> Enum.into(%{})
-    |> Enum.map(fn {k, v} -> "#{k |> Atom.to_string |> Recase.to_kebab}=#{Timex.format!(v, "{ISO:Extended}")}" end)
+    |> Enum.map(fn {k, v} ->
+      "#{k |> Atom.to_string() |> Recase.to_kebab()}=#{Timex.format!(v, "{ISO:Extended}")}"
+    end)
     |> Enum.join("&")
     |> String.replace("+", "%2B")
   end

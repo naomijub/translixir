@@ -433,7 +433,13 @@ defmodule Translixir do
       ...]
     }```
   """
-  def entity_history_timed({:ok, client}, entity_hash, order, with_docs, %HistoryTimeRange{} = timed)
+  def entity_history_timed(
+        {:ok, client},
+        entity_hash,
+        order,
+        with_docs,
+        %HistoryTimeRange{} = timed
+      )
       when is_pid(client) and is_boolean(with_docs) and is_atom(order) do
     url = Client.endpoint(client, :entity_history)
     headers = Client.headers(client)

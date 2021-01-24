@@ -51,6 +51,6 @@ outdated:
 spec:
 	mix dialyzer --format dialyxir
 
-publish:
+publish: docs
 	mix hex.publish
 	mix hex.publish docs
