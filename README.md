@@ -46,7 +46,7 @@ dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:translixir, "~> 0.3"}
+    {:translixir, "~> 0.4"}
   ]
 end
 ```
