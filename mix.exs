@@ -6,7 +6,7 @@ defmodule Translixir.MixProject do
   def project do
     [
       app: :translixir,
-      version: "0.4.0",
+      version: "0.4.1",
       description: "Crux Datalog DB Client",
       elixir: "~> 1.11.1",
       start_permanent: Mix.env() == :prod,
@@ -29,9 +29,9 @@ defmodule Translixir.MixProject do
 
   defp deps do
     [
-      {:httpoison, "~> 1.6"},
-      {:timex, "~> 3.5"},
-      {:credo, "~> 1.5.0", only: [:dev, :test, :ci], runtime: false},
+      {:httpoison, "~> 1.8"},
+      {:timex, "~> 3.6.3"},
+      {:credo, "~> 1.5.4", only: [:dev, :test, :ci], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
       {:eden, "~> 2.1.0"},
       {:recase, "~> 0.5"},
